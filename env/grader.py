@@ -1,2 +1,7 @@
 def grade(pred, actual):
-    return 1.0 if pred == actual else 0.0
+    if pred == actual:
+        return 1.0
+    elif pred in actual:
+        return 0.5
+    else:
+        return 0.0

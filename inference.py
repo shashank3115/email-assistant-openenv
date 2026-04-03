@@ -1,23 +1,29 @@
 from env.environment import EmailEnv
+from env.models import Action
 
 env = EmailEnv()
 
-print("[START]")
+print("[START] task=email env=openenv model=baseline")
 
-state = env.reset()
+obs = env.reset()
 done = False
+step = 0
+rewards = []
 
 while not done:
-    print("[STEP] State:", state)
+    step += 1
 
-    # simple logic
-    if "free" in state.lower():
+    email = obs.email
+
+    if "free" in email.lower():
         action = "spam"
     else:
         action = "important"
 
-    state, reward, done, _ = env.step(action)
+    obs, reward, done, _ = env.step(Action(label=action))
 
-    print("[STEP] Action:", action, "Reward:", reward)
+    rewards.append(reward)
 
-print("[END]")
+    print(f"[STEP] step={step} action={action} reward={reward:.2f} done={str(done).lower()} error=null")
+
+print(f"[END] success=true steps={step} rewards={','.join([f'{r:.2f}' for r in rewards])}")

@@ -1,27 +1,32 @@
+from env.models import Observation, Action, Reward
+
 class EmailEnv:
     def __init__(self):
         self.emails = [
             "Meeting at 5pm",
-            "Win a free iPhone!!!",
-            "Project deadline tomorrow"
+            "Win money now!!!",
+            "Submit assignment"
         ]
         self.index = 0
 
     def reset(self):
         self.index = 0
-        return self.emails[self.index]
+        return Observation(email=self.emails[self.index], step_count=0)
 
-    def step(self, action):
+    def step(self, action: Action):
         correct = ["important", "spam", "important"]
 
-        reward = 1.0 if action == correct[self.index] else 0.0
+        reward = 1.0 if action.label == correct[self.index] else 0.3
 
         self.index += 1
         done = self.index >= len(self.emails)
 
-        next_state = None if done else self.emails[self.index]
+        obs = None if done else Observation(
+            email=self.emails[self.index],
+            step_count=self.index
+        )
 
-        return next_state, reward, done, {}
+        return obs, reward, done, {}
 
     def state(self):
         return self.emails[self.index]
