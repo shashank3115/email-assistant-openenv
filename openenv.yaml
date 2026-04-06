@@ -1,0 +1,30 @@
+name: nexus-email-sentinel
+description: Advanced OpenEnv environment for temporal reasoning and email conflict resolution
+version: 1.0
+
+entrypoint: server.py
+
+tasks:
+  - name: phish-detection
+    description: Identify phishing email disguised as security alert
+  - name: thread-consolidation
+    description: Summarize multi-participant email thread
+  - name: moving-target
+    description: Extract final agreed time from changing email chain
+
+observation_space:
+  type: object
+  properties:
+    email:
+      type: string
+    step_count:
+      type: integer
+
+action_space:
+  type: object
+  properties:
+    label:
+      type: string
+      enum: ["spam", "important", "delete", "reply"]
+
+reward_range: [0.0, 1.0]
