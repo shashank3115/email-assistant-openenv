@@ -14,7 +14,7 @@ dependencies = [
 
 # This is the "server entry point" the error mentioned
 [project.scripts]
-server = "server.app:app"
+server = "server.app:main"
 
 [build-system]
 requires = ["hatchling"]
