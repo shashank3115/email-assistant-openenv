@@ -1,4 +1,6 @@
 fastapi
 uvicorn
 pydantic
-requests
+openai
+openenv-core
+python-multipart

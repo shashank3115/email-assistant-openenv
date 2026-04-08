@@ -1,48 +1,52 @@
-from models import Action, Observation
+import pydantic
+from typing import List, Optional
 
-class EmailSentinelEnv:
+# 1. Define what the Agent can SEE (Observation)
+class AuditObservation(pydantic.BaseModel):
+    files: List[str]
+    current_content: str
+    message: str
+
+# 2. Define what the Agent can DO (Action)
+class AuditAction(pydantic.BaseModel):
+    command: str  # "list", "read", "delete", "move"
+    target: str
+
+# 3. The Environment Class
+class AuditEnv:
     def __init__(self):
-        self.tasks = {
-            "easy_phish": {
-                "goal": "Identify and delete the phishing email.",
-                "emails": [
-                    {"id": 1, "sender": "security@bank.co", "body": "Click here to reset pass", "label": "spam"},
-                    {"id": 2, "sender": "mom@home.com", "body": "Dinner at 5?", "label": "inbox"}
-                ],
-                "target_id": 1, "correct_action": "delete"
-            },
-            "hard_temporal": {
-                "goal": "What time is the meeting finally set for? Respond with the time.",
-                "emails": [
-                    {"id": 10, "sender": "boss@co.com", "body": "Meeting at 2pm."},
-                    {"id": 11, "sender": "boss@co.com", "body": "Wait, let's do 4pm instead."},
-                    {"id": 12, "sender": "boss@co.com", "body": "Actually, 3pm works best for all."}
-                ],
-                "target_id": 12, "correct_payload": "3pm"
-            }
-        }
         self.reset()
 
-    def reset(self, task_id="easy_phish"):
-        self.active_task = self.tasks.get(task_id, self.tasks["easy_phish"])
-        self.done = False
-        return Observation(
-            inbox=self.active_task["emails"],
-            last_action_status="Initialized",
-            current_task_goal=self.active_task["goal"]
+    def reset(self):
+        self.state = {
+            "files": ["data_v1.csv", "virus.exe", "notes.txt"],
+            "cleaned": False,
+            "step_count": 0
+        }
+        return AuditObservation(
+            files=self.state["files"],
+            current_content="",
+            message="Environment Reset. Task: Remove non-data files."
         )
 
-    def step(self, action: Action):
+    def step(self, action: AuditAction):
+        self.state["step_count"] += 1
         reward = 0.0
-        # Winning Logic: Partial Rewards
-        if action.email_id == self.active_task["target_id"]:
-            reward += 0.4 # Reward for identifying the correct email
-            
-            if "correct_action" in self.active_task and action.call == self.active_task["correct_action"]:
-                reward += 0.6
-            elif "correct_payload" in self.active_task and self.active_task["correct_payload"] in action.payload:
-                reward += 0.6
+        done = False
         
-        self.done = True
-        obs = Observation(inbox=[], last_action_status="Success", current_task_goal="Finished")
-        return obs, round(reward, 2), self.done, {"final_score": reward}
+        if action.command == "delete" and action.target == "virus.exe":
+            reward = 0.5  # Partial progress!
+            self.state["files"].remove("virus.exe")
+            msg = "Deleted dangerous file."
+        elif action.command == "move" and action.target == "data_v1.csv":
+            reward = 0.5
+            msg = "Moved data to secure folder."
+            if len(self.state["files"]) == 2: # If virus was already deleted
+                reward = 1.0
+                done = True
+        else:
+            msg = "Action completed with no reward."
+            
+        if self.state["step_count"] >= 5: done = True
+        
+        return AuditObservation(files=self.state["files"], current_content="", message=msg), reward, done, {}
