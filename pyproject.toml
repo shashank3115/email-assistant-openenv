@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build-meta"
+
+[project]
+name = "file_audit_env"
+version = "1.0.0"
+description = "Real-world file system auditing environment"
+dependencies = [
+    "fastapi",
+    "uvicorn",
+    "pydantic",
+    "openenv-core",
+    "openai"
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["environment*"]
